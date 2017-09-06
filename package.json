@@ -1,0 +1,22 @@
+{
+  "name": "web-straws",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^15.6.0",
+    "react-dom": "^15.6.0",
+    "three": "^0.85.2",
+    "three-collada-loader": "0.0.1",
+    "three-obj-loader": "^1.1.2",
+    "three-orbitcontrols": "^1.2.1"
+  },
+  "devDependencies": {
+    "react-scripts": "1.0.7"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
