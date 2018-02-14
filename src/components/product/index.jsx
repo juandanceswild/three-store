@@ -1,20 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import checkered from './checkered.png';
-// import reiAsset from './Rei.obj';
-import Missile from './missile.dae';
-
 import OrbitControls from 'three-orbitcontrols';
 import ColladaLoader from 'three-collada-loader';
 import OBJLoader from 'three-obj-loader';
 
 
-var THREE = require('three');
+let THREE = require('three');
+let scene, camera, renderer;
+let geometry, material, mesh; 
+let productModel;
 
 OBJLoader(THREE);
-
-// console.log(typeof THREE.OBJLoader);
 
 
 class Product extends React.Component {
@@ -25,33 +22,22 @@ class Product extends React.Component {
   }
 
   componentDidMount() {
-    const { image, model } = this.props;
-    var scene = initThreeProduct(this.el, image, model);
+    this.initialize();
+    this.animate();
   }
 
-  render() {
-    return (
-      <div>
-        <div className="threeHolder" ref={el => this.el = el} />
-      </div>
-    )
+  state = {
+    productLoaded: false,
   }
-}
 
+  initialize() {
 
-function initThreeProduct(hostElement, background, model) {
+    const host = this.el;
 
-  var scene, camera, renderer;
-  var geometry, material, mesh; 
-  var productModel;
-  // var sphere, cube, rei;  
+    const width  = window.innerWidth;
+    const height = window.innerHeight;
 
-  var shown = false;
-
-  function initialize() {
-
-    var width  = window.innerWidth,
-        height = window.innerHeight;
+    const { image: background, model } = this.props;
 
     scene = new THREE.Scene();
 
@@ -61,75 +47,64 @@ function initThreeProduct(hostElement, background, model) {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(width, height);
 
-    var texture = new THREE.TextureLoader().load(background);
-
-    // SPHERE
-    //  Create a sphere of 10 width, length, and height
+    // Backround globe
+    let texture = new THREE.TextureLoader().load(background);
+    //  Create a sphere of 10 width, length, and height. This is the big globe.
     geometry = new THREE.SphereGeometry( 100, 32, 32 );
-    // Create a MeshBasicMaterial with a loaded texture
+    // Create a MeshBasicMaterial with a loaded texture - the background image.
     material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.BackSide } );
-
 
     mesh = new THREE.Mesh(geometry, material);
 
     scene.add(mesh);
 
-    var loader = new ColladaLoader();
+    let loader = new ColladaLoader();
+
+    // .load is async
     loader.load(
       model,
       (collada) => {
         productModel = collada.scene;
-        // console.log('loaded', model);
-        productModel.scale.set(20, 20, 20);
-        // // rei.position.y = -1;
+        productModel.scale.set(10, 10, 10);
         productModel.rotation.z = Math.PI / 2;
         scene.add(productModel);
+        this.setState({
+          productLoaded: true,
+        });
       },
       undefined
     );
 
     // Controls
-    var controls = new OrbitControls(camera);
+    let controls = new OrbitControls(camera);
     controls.enablePan = false;
     controls.enableZoom = false; 
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.5;
 
-    hostElement.addEventListener('mousewheel', onMouseWheel, false);
-    hostElement.addEventListener('DOMMouseScroll', onMouseWheel, false);
+    host.addEventListener('mousewheel', this.onMouseWheel, false);
+    host.addEventListener('DOMMouseScroll', this.onMouseWheel, false);
 
     renderer.setSize( window.innerWidth, window.innerHeight );
-
  
-    hostElement.appendChild( renderer.domElement );
-   
+    host.appendChild( renderer.domElement );
+
+    console.log(scene);
   }
 
-  initialize();
+  animate() {
+      requestAnimationFrame( this.animate.bind(this) );
 
-  function animate() {
-   
-      requestAnimationFrame( animate );
-
-      // sphere.rotation.x += 0.001;
-      // sphere.rotation.y += 0.002;
-
-      if (productModel && !shown) {
-        console.log('model is', productModel);
-        productModel.rotation.z += 0.1;
-        productModel.rotation.x += 0.05;
-        shown = true;
+      if (this.state.productLoaded) {
+        productModel.rotation.z += 0.001;
+        productModel.rotation.x += 0.005;
       }
 
-      renderer.render( scene, camera );
-   
+      renderer.render( scene, camera ); 
   }
 
-  animate();
-
-  function onMouseWheel(event) {
+  onMouseWheel = (event) => {
     event.preventDefault();
-    console.log('inside mousewheel');
     if (event.wheelDeltaY) { // WebKit
       camera.fov -= event.wheelDeltaY * 0.05;
     } else if (event.wheelDelta) { // Opera / IE9
@@ -142,7 +117,13 @@ function initThreeProduct(hostElement, background, model) {
     camera.updateProjectionMatrix();
   }
 
-  return scene;
+  render() {
+    return (
+      <div>
+        <div className="threeHolder" ref={el => this.el = el} />
+      </div>
+    )
+  }
 }
 
 export default Product
