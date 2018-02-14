@@ -1,5 +1,6 @@
 import React from 'react';
-import image from './bergsjostolen.jpg';
+import PropTypes from 'prop-types';
+
 import checkered from './checkered.png';
 // import reiAsset from './Rei.obj';
 import Missile from './missile.dae';
@@ -13,14 +14,19 @@ var THREE = require('three');
 
 OBJLoader(THREE);
 
-console.log(typeof THREE.OBJLoader);
+// console.log(typeof THREE.OBJLoader);
 
 
 class Product extends React.Component {
 
+  static propTypes = {
+    image: PropTypes.string.isRequired,
+    model: PropTypes.string.isRequired,
+  }
+
   componentDidMount() {
-    var scene = initThreeProduct(this.el);
-    console.log(scene);
+    const { image, model } = this.props;
+    var scene = initThreeProduct(this.el, image, model);
   }
 
   render() {
@@ -33,10 +39,14 @@ class Product extends React.Component {
 }
 
 
-function initThreeProduct(hostElement) {
+function initThreeProduct(hostElement, background, model) {
 
   var scene, camera, renderer;
-  var geometry, material, sphere, cube, mesh, rei;   
+  var geometry, material, mesh; 
+  var productModel;
+  // var sphere, cube, rei;  
+
+  var shown = false;
 
   function initialize() {
 
@@ -51,7 +61,7 @@ function initThreeProduct(hostElement) {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(width, height);
 
-    var texture = new THREE.TextureLoader().load(image);
+    var texture = new THREE.TextureLoader().load(background);
 
     // SPHERE
     //  Create a sphere of 10 width, length, and height
@@ -62,47 +72,18 @@ function initThreeProduct(hostElement) {
 
     mesh = new THREE.Mesh(geometry, material);
 
-    // scene.add( sphere );
     scene.add(mesh);
-
-    // // CUBE
-    // geometry = new THREE.BoxGeometry( 5, 5, 5 );
-    // material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
- 
-    // cube = new THREE.Mesh( geometry, material );
-    // cube.position.z = -7;
- 
-    // scene.add(cube);
-
-    //REI
-
-    // var loader = new THREE.OBJLoader();
-    // loader.load(
-    //   reiAsset,
-    //   (obj) => {
-    //     rei = obj;
-    //     console.log(rei);
-    //     // const rei = obj.scene;
-    //     obj.scale.set(40, 40, 40);
-    //     // rei.position.y = -1;
-    //     rei.rotation.z = Math.PI / 2;
-    //     rei.position.x = 0.7;
-    //     scene.add(obj);
-    //   },
-    //   undefined
-    // );
 
     var loader = new ColladaLoader();
     loader.load(
-      Missile,
+      model,
       (collada) => {
-        rei = collada.scene;
-        console.log('loaded', rei);
-        rei.scale.set(20, 20, 20);
+        productModel = collada.scene;
+        // console.log('loaded', model);
+        productModel.scale.set(20, 20, 20);
         // // rei.position.y = -1;
-        // rei.rotation.z = Math.PI / 2;
-        // rei.position.x = 0.7;
-        scene.add(rei);
+        productModel.rotation.z = Math.PI / 2;
+        scene.add(productModel);
       },
       undefined
     );
@@ -133,9 +114,11 @@ function initThreeProduct(hostElement) {
       // sphere.rotation.x += 0.001;
       // sphere.rotation.y += 0.002;
 
-      if (rei) {
-        // rei.rotation.z += 0.01;
-        // rei.rotation.x += 0.05;
+      if (productModel && !shown) {
+        console.log('model is', productModel);
+        productModel.rotation.z += 0.1;
+        productModel.rotation.x += 0.05;
+        shown = true;
       }
 
       renderer.render( scene, camera );
