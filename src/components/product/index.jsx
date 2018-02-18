@@ -5,6 +5,9 @@ import OrbitControls from 'three-orbitcontrols';
 import ColladaLoader from 'three-collada-loader';
 import OBJLoader from 'three-obj-loader';
 
+import BTE from '../../lib/bte';
+
+const styles = require('./styles.scss');
 
 let THREE = require('three');
 let scene, camera, renderer;
@@ -19,15 +22,32 @@ class Product extends React.Component {
   static propTypes = {
     image: PropTypes.string.isRequired,
     model: PropTypes.string.isRequired,
+    product: PropTypes.shape({
+      description: PropTypes.String,
+    })
   }
 
   componentDidMount() {
     this.initialize();
     this.animate();
+    BTE.on('resize', this.onWindowResize);
+
+    console.log(styles.description);
+  }
+
+  componentWillUnmount() {
+    BTE.remove('resize', this.onWindowResize);
   }
 
   state = {
     productLoaded: false,
+  }
+
+  onWindowResize = () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
   }
 
   initialize() {
@@ -118,9 +138,12 @@ class Product extends React.Component {
   }
 
   render() {
+    const { description } = this.props.product;
+
     return (
       <div>
         <div className="threeHolder" ref={el => this.el = el} />
+        <div className={styles.description}>{description}</div>
       </div>
     )
   }
