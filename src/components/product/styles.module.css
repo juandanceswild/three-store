@@ -1,0 +1,21 @@
+@import url("../../assets/stylesheets/main.css");
+
+.container {
+	position: relative;
+}
+
+.description {
+	position: absolute;
+	width: 30%;
+	right: 0;
+	padding-right: 50px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--color-white);
+	text-align: left;
+}
+
+.cartLink {
+	display: block;
+	margin-top: 40px;
+}

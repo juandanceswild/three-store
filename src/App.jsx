@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import './App.css';
 import Product from './components/product'
 
 import BTE from './lib/bte';
@@ -7,8 +6,11 @@ import BTE from './lib/bte';
 import image from './assets/bergsjostolen.jpg';
 import Missile from './assets/missile.dae';
 
+const styles = require('./app.module.css');
 
 const product = {
+	image,
+	model: Missile,
 	description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu purus eget massa dapibus gravida. Proin eu quam dui."
 }
 
@@ -19,8 +21,9 @@ class App extends Component {
 
   render() {
     return (
-      <div className="App">
-        <Product image={image} model={Missile} product={product}/>
+      <div className={styles.container}>
+
+        <Product product={product}/>
       </div>
     );
   }

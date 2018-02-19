@@ -1,13 +1,15 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 
 import OrbitControls from 'three-orbitcontrols';
 import ColladaLoader from 'three-collada-loader';
 import OBJLoader from 'three-obj-loader';
 
 import BTE from '../../lib/bte';
+import productProp from '../../lib/CustomPropTypes/product';
 
-const styles = require('./styles.scss');
+
+const styles = require('./styles.module.css');
 
 let THREE = require('three');
 let scene, camera, renderer;
@@ -20,11 +22,7 @@ OBJLoader(THREE);
 class Product extends React.Component {
 
   static propTypes = {
-    image: PropTypes.string.isRequired,
-    model: PropTypes.string.isRequired,
-    product: PropTypes.shape({
-      description: PropTypes.String,
-    })
+    product: productProp,
   }
 
   componentDidMount() {
@@ -57,7 +55,7 @@ class Product extends React.Component {
     const width  = window.innerWidth;
     const height = window.innerHeight;
 
-    const { image: background, model } = this.props;
+    const { image: background, model } = this.props.product;
 
     scene = new THREE.Scene();
 
@@ -141,9 +139,12 @@ class Product extends React.Component {
     const { description } = this.props.product;
 
     return (
-      <div>
+      <div className={styles.container}>
         <div className="threeHolder" ref={el => this.el = el} />
-        <div className={styles.description}>{description}</div>
+        <div className={styles.description}>
+          <span>{description}</span>
+          <a className={styles.cartLink}>Add to cart</a>
+        </div>
       </div>
     )
   }

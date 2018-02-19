@@ -5,14 +5,14 @@
   "dependencies": {
     "react": "^15.6.0",
     "react-dom": "^15.6.0",
+    "react-scripts-cssmodules": "^1.0.171",
     "three": "^0.85.2",
     "three-collada-loader": "0.0.1",
     "three-obj-loader": "^1.1.2",
     "three-orbitcontrols": "^1.2.1"
   },
   "devDependencies": {
-    "eslint": "^4.8.0",
-    "react-scripts": "1.0.7"
+    "eslint": "^4.8.0"
   },
   "scripts": {
     "start": "react-scripts start",
