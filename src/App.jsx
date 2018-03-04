@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import Product from './components/product'
+import Product from './components/Product'
 
 import BTE from './lib/bte';
 
-import image from './assets/bergsjostolen.jpg';
+// import image from './assets/bergsjostolen.jpg';
+import image from './assets/backgrounds/beaucastle.jpg';
 import Missile from './assets/missile.dae';
 
 const styles = require('./app.module.css');
@@ -15,6 +16,7 @@ const product = {
 }
 
 class App extends Component {
+
 	componentDidMount() {
 		BTE.monitorResize();
 	}
@@ -22,7 +24,6 @@ class App extends Component {
   render() {
     return (
       <div className={styles.container}>
-
         <Product product={product}/>
       </div>
     );
@@ -30,3 +31,4 @@ class App extends Component {
 }
 
 export default App;
+

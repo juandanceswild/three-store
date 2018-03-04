@@ -1,5 +1,4 @@
 import React from 'react';
-// import PropTypes from 'prop-types';
 
 import OrbitControls from 'three-orbitcontrols';
 import ColladaLoader from 'three-collada-loader';
@@ -12,12 +11,8 @@ import productProp from '../../lib/CustomPropTypes/product';
 const styles = require('./styles.module.css');
 
 let THREE = require('three');
-let scene, camera, renderer;
-let geometry, material, mesh; 
-let productModel;
 
 OBJLoader(THREE);
-
 
 class Product extends React.Component {
 
@@ -25,12 +20,19 @@ class Product extends React.Component {
     product: productProp,
   }
 
+  scene = null;
+  camera = null;
+  renderer = null;
+  geometry = null;
+  material = null;
+  mesh = null;
+  productModel = null;
+
   componentDidMount() {
     this.initialize();
     this.animate();
-    BTE.on('resize', this.onWindowResize);
 
-    console.log(styles.description);
+    BTE.on('resize', this.onWindowResize);
   }
 
   componentWillUnmount() {
@@ -42,39 +44,43 @@ class Product extends React.Component {
   }
 
   onWindowResize = () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+    const width  = this.container.clientWidth;
+    const height = this.container.clientHeight
 
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+
+    this.renderer.setSize( width, height );
   }
 
   initialize() {
 
     const host = this.el;
 
-    const width  = window.innerWidth;
-    const height = window.innerHeight;
+    const width  = this.container.clientWidth;
+    const height = this.container.clientHeight;
 
     const { image: background, model } = this.props.product;
 
-    scene = new THREE.Scene();
+    this.scene = new THREE.Scene();
 
-    camera = new THREE.PerspectiveCamera(90, width / height, 0.01, 1000);
-    camera.position.z = 100.0;
+    this.camera = new THREE.PerspectiveCamera(75, width / height, 1, 1100);
+    this.camera.target = new THREE.Vector3(0, 0, 0);
+    this.camera.position.z = 10.0;
 
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize(width, height);
+    this.renderer = new THREE.WebGLRenderer();
+    this.renderer.setSize(width, height);
 
     // Backround globe
     let texture = new THREE.TextureLoader().load(background);
     //  Create a sphere of 10 width, length, and height. This is the big globe.
-    geometry = new THREE.SphereGeometry( 100, 32, 32 );
+    this.geometry = new THREE.SphereGeometry( 500, 60, 40 );
     // Create a MeshBasicMaterial with a loaded texture - the background image.
-    material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.BackSide } );
+    this.material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.BackSide } );
 
-    mesh = new THREE.Mesh(geometry, material);
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
 
-    scene.add(mesh);
+    this.scene.add(this.mesh);
 
     let loader = new ColladaLoader();
 
@@ -82,10 +88,10 @@ class Product extends React.Component {
     loader.load(
       model,
       (collada) => {
-        productModel = collada.scene;
-        productModel.scale.set(10, 10, 10);
-        productModel.rotation.z = Math.PI / 2;
-        scene.add(productModel);
+        this.productModel = collada.scene;
+        this.productModel.scale.set(1, 1, 1);
+        this.productModel.rotation.z = Math.PI / 2;
+        this.scene.add(this.productModel);
         this.setState({
           productLoaded: true,
         });
@@ -94,7 +100,7 @@ class Product extends React.Component {
     );
 
     // Controls
-    let controls = new OrbitControls(camera);
+    let controls = new OrbitControls(this.camera);
     controls.enablePan = false;
     controls.enableZoom = false; 
     controls.autoRotate = true;
@@ -103,44 +109,42 @@ class Product extends React.Component {
     host.addEventListener('mousewheel', this.onMouseWheel, false);
     host.addEventListener('DOMMouseScroll', this.onMouseWheel, false);
 
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    this.renderer.setSize( window.innerWidth, window.innerHeight );
  
-    host.appendChild( renderer.domElement );
-
-    console.log(scene);
+    host.appendChild( this.renderer.domElement );
   }
 
   animate() {
       requestAnimationFrame( this.animate.bind(this) );
 
       if (this.state.productLoaded) {
-        productModel.rotation.z += 0.001;
-        productModel.rotation.x += 0.005;
+        this.productModel.rotation.z += 0.001;
+        this.productModel.rotation.x += 0.005;
       }
 
-      renderer.render( scene, camera ); 
+      this.renderer.render( this.scene, this.camera ); 
   }
 
   onMouseWheel = (event) => {
     event.preventDefault();
     if (event.wheelDeltaY) { // WebKit
-      camera.fov -= event.wheelDeltaY * 0.05;
+      this.camera.fov -= event.wheelDeltaY * 0.05;
     } else if (event.wheelDelta) { // Opera / IE9
-      camera.fov -= event.wheelDelta * 0.05;
+      this.camera.fov -= event.wheelDelta * 0.05;
     } else if (event.detail) { // Firefox
-      camera.fov += event.detail * 1.0;
+      this.camera.fov += event.detail * 1.0;
     }
 
-    camera.fov = Math.max(40, Math.min(100, camera.fov));
-    camera.updateProjectionMatrix();
+    this.camera.fov = Math.max(40, Math.min(100, this.camera.fov));
+    this.camera.updateProjectionMatrix();
   }
 
   render() {
     const { description } = this.props.product;
 
     return (
-      <div className={styles.container}>
-        <div className="threeHolder" ref={el => this.el = el} />
+      <div className={styles.container} ref={(e) => { this.container = e; }}>
+        <div className={styles.threeHolder} ref={el => this.el = el} />
         <div className={styles.description}>
           <span>{description}</span>
           <a className={styles.cartLink}>Add to cart</a>
