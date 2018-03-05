@@ -8,7 +8,7 @@ import BTE from '../../lib/bte';
 import productProp from '../../lib/CustomPropTypes/product';
 
 
-//todo - one renderer, multiple scenes with cameras -- multiple viewports https://threejs.org/examples/webgl_multiple_views.html
+//TODO - one renderer, multiple scenes with cameras -- multiple viewports https://threejs.org/examples/webgl_multiple_views.html
 
 const styles = require('./styles.module.css');
 
@@ -31,7 +31,6 @@ class Product extends React.Component {
   productModel = null;
 
   componentDidMount() {
-    // console.log(this.container, this.container.clientWidth, this.container.clientHeight);
     this.initialize();
     this.animate();
 
@@ -44,7 +43,7 @@ class Product extends React.Component {
 
   componentWillUpdate(nextProps) {
     if (nextProps.product.id !== this.props.product.id) {
-      this.el.removeChild( this.renderer.domElement );
+      // this.el.removeChild( this.renderer.domElement );
     }
   }
 
@@ -54,7 +53,9 @@ class Product extends React.Component {
       this.setState({
         productLoaded: false,
       })
-      this.initialize();
+
+      this.scene.remove.apply(this.scene, this.scene.children);
+      this.productEnvironment();
     }
   }
 
@@ -79,34 +80,17 @@ class Product extends React.Component {
     const width  = this.container.clientWidth;
     const height = this.container.clientHeight;
 
-    const { image: background, model } = this.props.product;
-    // console.log(model);
-
     this.scene = new THREE.Scene();
 
     this.camera = new THREE.PerspectiveCamera(75, width / height, 1, 1100);
     this.camera.target = new THREE.Vector3(0, 0, 0);
     this.camera.position.z = 10.0;
+    this.camera.position.x = 10.0 * Math.random();
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(width, height);
-    // console.log('initializing', this.container, 'with', width, height);
 
-    // Backround globe
-    let texture = new THREE.TextureLoader().load(background);
-    //  Create a sphere of 10 width, length, and height. This is the big globe.
-    this.geometry = new THREE.SphereGeometry( 500, 60, 40 );
-    // Create a MeshBasicMaterial with a loaded texture - the background image.
-    this.material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.BackSide } );
-
-    this.mesh = new THREE.Mesh(this.geometry, this.material);
-
-    this.scene.add(this.mesh);
-
-    console.log(model);
-
-    if (typeof model === 'object') this.loadJson();
-    else if (typeof model === 'string') this.loadCollada();
+    this.productEnvironment();
 
     // Controls
     let controls = new OrbitControls(this.camera);
@@ -119,6 +103,25 @@ class Product extends React.Component {
     host.addEventListener('DOMMouseScroll', this.onMouseWheel, false);
  
     host.appendChild( this.renderer.domElement );
+  }
+
+  productEnvironment() {
+    const { image: background, model } = this.props.product;
+
+    // Backround globe
+    let texture = new THREE.TextureLoader().load(background);
+    //  Create a sphere of 500 radius.
+    this.geometry = new THREE.SphereGeometry( 500, 60, 40 );
+    // Create a MeshBasicMaterial with a loaded texture - the background image.
+    this.material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.BackSide } );
+
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
+
+    this.scene.add(this.mesh);
+
+    // Load product model
+    if (typeof model === 'object') this.loadJson();
+    else if (typeof model === 'string') this.loadCollada();
   }
 
   loadCollada() {
@@ -147,13 +150,11 @@ class Product extends React.Component {
 
     loader.parse(model,
       (o) => {
-        console.log('loaded', o);
         this.productModel = o;
         this.productModel.scale.set(scale.x, scale.y, scale.z);
         this.productModel.position.x += 3;
         this.productModel.rotation.z = Math.random() * Math.PI / 2;
         this.scene.add(this.productModel);
-        console.log(this.productModel.texturePath);
         this.setState({
           productLoaded: true,
         }); 
