@@ -8,6 +8,8 @@ import BTE from '../../lib/bte';
 import productProp from '../../lib/CustomPropTypes/product';
 
 
+//todo - one renderer, multiple scenes with cameras -- multiple viewports https://threejs.org/examples/webgl_multiple_views.html
+
 const styles = require('./styles.module.css');
 
 let THREE = require('three');
@@ -29,6 +31,7 @@ class Product extends React.Component {
   productModel = null;
 
   componentDidMount() {
+    // console.log(this.container, this.container.clientWidth, this.container.clientHeight);
     this.initialize();
     this.animate();
 
@@ -37,6 +40,22 @@ class Product extends React.Component {
 
   componentWillUnmount() {
     BTE.remove('resize', this.onWindowResize);
+  }
+
+  componentWillUpdate(nextProps) {
+    if (nextProps.product.id !== this.props.product.id) {
+      this.el.removeChild( this.renderer.domElement );
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.product.id !== this.props.product.id) {
+      console.log('going to init');
+      this.setState({
+        productLoaded: false,
+      })
+      this.initialize();
+    }
   }
 
   state = {
@@ -61,6 +80,7 @@ class Product extends React.Component {
     const height = this.container.clientHeight;
 
     const { image: background, model } = this.props.product;
+    // console.log(model);
 
     this.scene = new THREE.Scene();
 
@@ -70,6 +90,7 @@ class Product extends React.Component {
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(width, height);
+    // console.log('initializing', this.container, 'with', width, height);
 
     // Backround globe
     let texture = new THREE.TextureLoader().load(background);
@@ -82,22 +103,10 @@ class Product extends React.Component {
 
     this.scene.add(this.mesh);
 
-    let loader = new ColladaLoader();
+    console.log(model);
 
-    // .load is async
-    loader.load(
-      model,
-      (collada) => {
-        this.productModel = collada.scene;
-        this.productModel.scale.set(1, 1, 1);
-        this.productModel.rotation.z = Math.PI / 2;
-        this.scene.add(this.productModel);
-        this.setState({
-          productLoaded: true,
-        });
-      },
-      undefined
-    );
+    if (typeof model === 'object') this.loadJson();
+    else if (typeof model === 'string') this.loadCollada();
 
     // Controls
     let controls = new OrbitControls(this.camera);
@@ -108,10 +117,49 @@ class Product extends React.Component {
 
     host.addEventListener('mousewheel', this.onMouseWheel, false);
     host.addEventListener('DOMMouseScroll', this.onMouseWheel, false);
-
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
  
     host.appendChild( this.renderer.domElement );
+  }
+
+  loadCollada() {
+    const { model, scale } = this.props.product;
+    const colladaLoader = new ColladaLoader();
+
+    // .load is async
+    colladaLoader.load(
+      model,
+      (o) => {
+        this.productModel = o.scene;
+        this.productModel.scale.set(scale.x, scale.y, scale.z);
+        this.productModel.rotation.z = Math.random() * Math.PI / 2;
+        this.scene.add(this.productModel);
+        this.setState({
+          productLoaded: true,
+        });
+      },
+      undefined
+    );
+  }
+
+  loadJson() {
+    const { model, scale } = this.props.product;
+    const loader = new THREE.ObjectLoader();
+
+    loader.parse(model,
+      (o) => {
+        console.log('loaded', o);
+        this.productModel = o;
+        this.productModel.scale.set(scale.x, scale.y, scale.z);
+        this.productModel.position.x += 3;
+        this.productModel.rotation.z = Math.random() * Math.PI / 2;
+        this.scene.add(this.productModel);
+        console.log(this.productModel.texturePath);
+        this.setState({
+          productLoaded: true,
+        }); 
+      },
+      undefined
+    );
   }
 
   animate() {

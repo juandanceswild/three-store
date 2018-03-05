@@ -15,6 +15,7 @@
 	transform: translateY(-50%);
 	color: var(--color-white);
 	text-align: left;
+	display: none;
 }
 
 .cartLink {
