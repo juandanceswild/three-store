@@ -96,8 +96,8 @@ class Product extends React.Component {
     let controls = new OrbitControls(this.camera);
     controls.enablePan = false;
     controls.enableZoom = false; 
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.5;
+    controls.autoRotate = false;
+    controls.rotateSpeed = Math.random() * 1;
 
     host.addEventListener('mousewheel', this.onMouseWheel, false);
     host.addEventListener('DOMMouseScroll', this.onMouseWheel, false);
@@ -148,6 +148,7 @@ class Product extends React.Component {
     const { model, scale } = this.props.product;
     const loader = new THREE.ObjectLoader();
 
+    // parse is async
     loader.parse(model,
       (o) => {
         this.productModel = o;
